@@ -86,7 +86,7 @@ Ky=7;
 % call the core function which correlates the stimulus with the EEG
 [H,W,rhos,pvals,U,V,Rxx,Ryy] = myCanonCorr(sampleFeatureConvolution,sampleEEGdown,Kx,Ky); 
 
-%% Visualize results
+%% Look at results
 
 %%% BK: Unlike in the core RCA function, the data are not visualized in the
 %%% function that does the calculations but rather separately as shown
@@ -114,12 +114,10 @@ locfile='BioSemi32.loc'; % EEGLAB-style location file for rendering scalp maps
 for c=1:3
     subplot(2,3,c);
     
-    %%% BK: Topomap of current CC (spatial filter of EEG)
+    %%% BK: Top
     topoplot_new(A(:,c),locfile,'electrodes','off','numcontour',0,'plotrad',0.7);
     title(['Spatial response: comp ' num2str(c)]);
     colormap('jet')
-    
-    %%% BK: Temporal filter of current CC (of stim feature)
     subplot(2,3,c+3);
     plot(H(:,c),'k');
     title(['Temporal response: comp. ' num2str(c)]);
