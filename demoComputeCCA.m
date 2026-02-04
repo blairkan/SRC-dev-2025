@@ -87,17 +87,19 @@ sampleFeatureConvolution=tplitz(sampleFeature,filterLength);
 %%% RCA we haven't tried to tune these much)
 % how strongly to regularize the stimulus (small number means strong
 % regularization)
-Kx=7; 
+Kx=7; % Starting value = 7
 
 % how strongly to regularize the EEG
-Ky=7;
+Ky=7; % Starting value = 7
 
 %% Call the core CCA function
 
 %%% BK: "X" refers to stimulus things, and "Y" refers to response things
 
 % call the core function which correlates the stimulus with the EEG
-[H,W,rhos,pvals,U,V,Rxx,Ryy] = computeCCA(sampleFeatureConvolution,sampleEEGdown,Kx,Ky); 
+[H, W, U, V, A, dC, R] = computeCCA(sampleFeatureConvolution,sampleEEGdown,Kx,Ky); 
+
+
 
 %% Visualize results
 
