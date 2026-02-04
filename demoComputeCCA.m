@@ -96,10 +96,26 @@ Ky=7; % Starting value = 7
 
 %%% BK: "X" refers to stimulus things, and "Y" refers to response things
 
-% call the core function which correlates the stimulus with the EEG
+%%% call the core function which correlates the stimulus with the EEG
+% H: Temporal filters, W: Spatial filters, A: Fwd model of spatial filters
+% U: Temporally filtered stim feature, V: Spatially filtered EEG
+% dC: Eigenvalues, R: Struct of covariance matrices
 [H, W, U, V, A, dC, R] = computeCCA(sampleFeatureConvolution,sampleEEGdown,Kx,Ky); 
 
+%% Compute SRC
 
+%%% NEW 2/3/2026: This is now separate from the core CCA function
+
+% For how many components can we calculate SRC? 
+nComp = min(size(U, 2), size(V, 2));
+rhos = nan(nComp, 1);
+
+% Do the correlation
+for i = 1:nComp
+    rhos(i) = corr(U(:,i), V(:,i));
+end
+
+rhos
 
 %% Visualize results
 
@@ -107,22 +123,15 @@ Ky=7; % Starting value = 7
 %%% function that does the calculations but rather separately as shown
 %%% below
 
-% now let's examine the results
-
-% how many components do we want to examine
-nComp=7;
-
-% how strong are the correlations:
-%%% BK: In the future we'll separate out the calculation of
-%%% stimulus-response correlations (rhos) into a separate function
-rhos(1:nComp)
-
 % now let's look at the scalp maps of the first three EEG components that
 % the stim2eeg found
 
-% first compute the so-called "forward models"
-%%% BK: "A" is the variable we use to render topomaps, same as in RCA
-A=Ryy*W(:,1:nComp)*inv(W(:,1:nComp)'*Ryy*W(:,1:nComp));
+%%% NEW 2/3/2026: When visualizing the temporal filters, omit the last
+%%% value since that is the intercept
+
+%%% TODO: 
+% - Visualize topos on shared cLim and temporal filters on shared yLim
+% - Change temporal filter xaxis to time (msec or sec) rather than samp
 
 figure(1);
 locfile='BioSemi32.loc'; % EEGLAB-style location file for rendering scalp maps
@@ -136,6 +145,6 @@ for c=1:3
     
     %%% BK: Temporal filter of current CC (of stim feature)
     subplot(2,3,c+3);
-    plot(H(:,c),'k');
+    plot(H(1:end-1,c),'k');
     title(['Temporal response: comp. ' num2str(c)]);
 end

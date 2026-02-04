@@ -89,23 +89,17 @@ V = Y.' * W;
 
 return
 
-nVars=min(size(U,1),size(V,1));
-rhos=zeros(nVars,1);
-pvals=zeros(nVars,1);
-for n=1:nVars
-    n
-    [r,p]=corrcoef(U(n,:),V(n,:));
-    rhos(n)=r(1,2);
-    pvals(n)=p(1,2);
-end
-
-return
-
-X=randn(5,1000);
-Y=randn(5,1000);
-[H,W,rhos,pvals,U,V] = myCanonCorr(X,Y,5,5);
-rhos
-pvals
+% nVars=min(size(U,1),size(V,1));
+% rhos=zeros(nVars,1);
+% pvals=zeros(nVars,1);
+% for n=1:nVars
+%     n
+%     [r,p]=corrcoef(U(n,:),V(n,:));
+%     rhos(n)=r(1,2);
+%     pvals(n)=p(1,2);
+% end
+% 
+% return
 
 
 
