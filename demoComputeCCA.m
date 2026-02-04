@@ -26,6 +26,10 @@ clear all; close all; clc
 %% Load input data
 addpath('..');
 load('./sampleData.mat','sampleEEG','sampleFeature','fsEEG','fsStim');
+%   sampleEEG:      [83417 x 32] one trial of 32-chanel data
+%   sampleFeature:  [7823 x 1] one stim feature
+%   fsEEG:          256 (Hz)
+%   fsStim:         24 (Hz)
 
 %% Downsample EEG to fs of stim feature
 % first downsample the EEG to the sampling rate of the stimulus
