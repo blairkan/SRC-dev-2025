@@ -78,8 +78,15 @@ filterLength=fsStim;
 
 % now create the convolution matrix
 %%% BK: this is the matrix with all the shifted versions of the stimulus
-%%% feature. 
-sampleFeatureConvolution=tplitz(sampleFeature,filterLength);
+%%% feature.
+
+%%% NEW: Use Blair's "createFeatureToeplitzMatrix" function instead of 
+% "tplitz" function (is faster and won't cause out-of-memory errors for
+% long feature vectors). 
+% OLD: sampleFeatureConvolution=tplitz(sampleFeature,filterLength);
+
+sampleFeatureConvolution = createFeatureToeplitzMatrix(sampleFeature, ...
+    filterLength-1, 1);
 
 %% Specify regularization parameters
 % we are ready to call the core (CCA) function, but first we need to set
