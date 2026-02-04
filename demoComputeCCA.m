@@ -133,10 +133,15 @@ rhos
 % - Visualize topos on shared cLim and temporal filters on shared yLim
 % - Change temporal filter xaxis to time (msec or sec) rather than samp
 
+close all
+nPlot = 3; 
+
+%%% Figure 1: Close to original demo.m figure, except omitting last sample
+%%% of the temporal filters (i.e., the intercept values)
 figure(1);
 locfile='BioSemi32.loc'; % EEGLAB-style location file for rendering scalp maps
-for c=1:3
-    subplot(2,3,c);
+for c=1:nPlot
+    subplot(2,nPlot,c);
     
     %%% BK: Topomap of current CC (spatial filter of EEG)
     topoplot_new(A(:,c),locfile,'electrodes','off','numcontour',0,'plotrad',0.7);
@@ -144,7 +149,43 @@ for c=1:3
     colormap('jet')
     
     %%% BK: Temporal filter of current CC (of stim feature)
-    subplot(2,3,c+3);
+    subplot(2,nPlot,c+nPlot);
     plot(H(1:end-1,c),'k');
     title(['Temporal response: comp. ' num2str(c)]);
 end
+sgtitle('Original plot (matches demo.m)')
+
+%%% Figure 2: Plot topos on shared CLim, and line plots on shared yLim
+APlot = A(:, 1:nPlot);
+HPlot = H(1:end-1, 1:nPlot); % Also truncating last value (intercept)
+AMax = max(abs(APlot(:))); % Get global abs max - will do symmetric CLim
+HMax = max(abs(HPlot(:))); % Again global abs max for symmetric YLim
+t = 1/fsStim * (0:size(HPlot,1)-1);
+figure(2);
+for c=1:nPlot
+    subplot(2,nPlot,c);
+    
+    %%% BK: Topomap of current CC (spatial filter of EEG)
+    topoplot_new(APlot(:,c),locfile,'electrodes','off','numcontour',0,'plotrad',0.7);
+    title(['Spatial response: CC' num2str(c)]);
+    colormap('jet')
+    set(gca, 'CLim', [-AMax AMax])
+    if c == 1
+        tSize = get(gca, 'Position');
+        h = colorbar; h.Location = 'westoutside';
+        hTitle = get(h, 'Title'); 
+        set(hTitle, 'String', 'A.U.')
+        set(gca, 'Position', tSize)
+    end
+    
+    %%% BK: Temporal filter of current CC (of stim feature)
+    subplot(2,nPlot,c+nPlot);
+    plot(t, HPlot(:,c),'k'); grid on
+    xlabel('Time (sec)'); ylabel('Weight')
+    title(['Temporal response: CC' num2str(c)]);
+    set(gca, 'YLim', [-HMax HMax])
+end
+sgtitle('Updated plot (shared CLim and YLim)')
+
+
+
