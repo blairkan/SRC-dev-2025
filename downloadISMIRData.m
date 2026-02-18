@@ -79,4 +79,10 @@ function INFO = createInfoStruct()
 INFO(1).url = 'https://www.dropbox.com/scl/fi/ihnk69qhm8dlqnajfport/song21_all_Imputed.mat?rlkey=sfej3vrec1wdm2y2wlyrehfly&st=kckv682n&dl=1';
 INFO(1).fn = 'song21_all_Imputed.mat';
 
+INFO(2).url = 'https://www.dropbox.com/scl/fi/0xkprt3jjwp9by18qvcim/21_Features_80Hz.mat?rlkey=clrjtvtlu139owobbacssj0j1&st=b7559nfa&dl=1';
+INFO(2).fn = '21_Features_80Hz.mat';
+
+INFO(3).url = 'https://www.dropbox.com/scl/fi/l8aun7obx4rim7ze2pbm2/21_PC1_80Hz.mat?rlkey=otiul0nfnugm7vibcgowpx65e&st=5p81p4bg&dl=1';
+INFO(3).fn = '21_PC1_80Hz.mat';
+
 end
