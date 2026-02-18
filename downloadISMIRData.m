@@ -76,7 +76,7 @@ function INFO = createInfoStruct()
 % (2) name of to-be-saved file for the items in the SDR repository.
 
 % Index 1: Song 21 data (a and b combined)
-INFO(1).url = 'https://www.dropbox.com/scl/fi/ihnk69qhm8dlqnajfport/song21_all_Imputed.mat?rlkey=sfej3vrec1wdm2y2wlyrehfly&st=kckv682n&dl=0';
+INFO(1).url = 'https://www.dropbox.com/scl/fi/ihnk69qhm8dlqnajfport/song21_all_Imputed.mat?rlkey=sfej3vrec1wdm2y2wlyrehfly&st=kckv682n&dl=1';
 INFO(1).fn = 'song21_all_Imputed.mat';
 
 end
