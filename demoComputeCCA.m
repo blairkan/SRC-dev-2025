@@ -25,7 +25,7 @@ clear all; close all; clc
 
 %% Load input data
 addpath('..');
-load('./sampleData.mat','sampleEEG','sampleFeature','fsEEG','fsStim');
+load('Data/sampleData.mat','sampleEEG','sampleFeature','fsEEG','fsStim');
 %   sampleEEG:      [83417 x 32] one trial of 32-chanel data
 %   sampleFeature:  [7823 x 1] one stim feature
 %   fsEEG:          256 (Hz)
@@ -36,6 +36,11 @@ load('./sampleData.mat','sampleEEG','sampleFeature','fsEEG','fsStim');
 %%% BK: We would generally downsample to the lower sampling rate. We can also
 % resample to the higher one but there will be no added information
 sampleEEGdown=resample(sampleEEG,fsStim,fsEEG); 
+
+%% DC Correct the EEG
+
+% Transpose the input so it's space by time (then transpose output)
+sampleEEGDCCorr = dcCorrect(sampleEEGdown')'; 
 
 %% z-score the stim feature
 % normalize the feature because correlation doesn't care about scale
@@ -50,16 +55,16 @@ sampleFeature=zscore(sampleFeature);
 % check if feature missing samples
 %%% BK: If the EEG is longer than the stim feature, zero-pad the end of the
 %%% stim feature so that the lengths match
-if size(sampleEEGdown,1)>numel(sampleFeature) 
-    nMissing=size(sampleEEGdown,1)-numel(sampleFeature);
+if size(sampleEEGDCCorr,1)>numel(sampleFeature) 
+    nMissing=size(sampleEEGDCCorr,1)-numel(sampleFeature);
     sampleFeature=cat(1,sampleFeature,zeros(nMissing,1));
 end
 
 % check if feature has too many samples
 %%% BK: If the EEG is shorter than the stimulus feature, truncate the
 %%% stimulus feature to match the length of the EEG
-if size(sampleEEGdown,1)<numel(sampleFeature)  
-    sampleFeature=sampleFeature(1:size(sampleEEGdown,1));
+if size(sampleEEGDCCorr,1)<numel(sampleFeature)  
+    sampleFeature=sampleFeature(1:size(sampleEEGDCCorr,1));
 end
 
 %% Create matrix of time-shifted versions of stim feature
@@ -111,7 +116,7 @@ Ky=7; % Starting value = 7
 % H: Temporal filters, W: Spatial filters, A: Fwd model of spatial filters
 % U: Temporally filtered stim feature, V: Spatially filtered EEG
 % dC: Eigenvalues, R: Struct of covariance matrices
-[H, W, U, V, A, dC, R] = computeCCA(sampleFeatureConvolution,sampleEEGdown,Kx,Ky); 
+[H, W, U, V, A, dC, R] = computeCCA(sampleFeatureConvolution,sampleEEGDCCorr,Kx,Ky); 
 
 %% Compute SRC
 
