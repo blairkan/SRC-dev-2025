@@ -1,6 +1,6 @@
-% demoComputeCCA.m
-% ------------------
-% Blair dev version 2026
+% demo3ReplicateISMIRMultiTrial.m
+% --------------------------------
+% Blair dev version 2/18/2026
 % stim2eeg demo
 %
 % perform a SRC analysis on sample data from a single participant 
@@ -16,31 +16,61 @@
 
 
 % History
+% 2/18/2026 - adapted from demo2ComputeCCA
 % 2/3/2026 - adapted from demo.m
-% thanks to Paul DeGuzman for providing data
-% (c) Jacek P. Dmochowski, 2019
-% jdmochowski@ccny.cuny.edu
 
 clear all; close all; clc
 
+%% Download ISMIR data
+
+% The following script will download any ISMIR files into the Data/ 
+% directory if they are not already there. For any file that is already 
+% there, the script will skip downloading a second time. The downloaded
+% files are ignored by git. 
+
+downloadISMIRData
+
 %% Load input data
-addpath('..');
-load('Data/sampleData.mat','sampleEEG','sampleFeature','fsEEG','fsStim');
-%   sampleEEG:      [83417 x 32] one trial of 32-chanel data
-%   sampleFeature:  [7823 x 1] one stim feature
-%   fsEEG:          256 (Hz)
-%   fsStim:         24 (Hz)
+
+% These are the stim feature files
+tempX1 = load('21_Features_80Hz.mat', 'fs', 'vars'); 
+tempX2 = load('21_PC1_80Hz.mat', 'fs', 'PC');
+
+% This is the EEG file
+tempY = load('song21_all_Imputed.mat', 'fs', 'data21'); 
+
+% Check and extract sampling rates
+assert(isequal(tempX1.fs, tempX2.fs), 'Stim feature sampling rates are not equal!')
+fsStim = tempX1.fs; % 80
+fsEEG = tempY.fs; % 125
+
+% Extract stim features
+stimRMS = tempX1.vars.RmsEnergy;
+stimFlux = tempX1.vars.Flux; 
+stimPC1 = tempX2.PC; 
+
+% Extract EEG data matrix
+eeg = tempY.data21; % [space x time x trial] matrix, no NaNs
+[nSpace, nTime, nTrial] = size(eeg); 
+disp(['Input data has ' num2str(nSpace) ' channels, ' num2str(nTime) ...
+    ' time points, and ' num2str(nTrial) ' trials of data.'])
+
+clear temp*
 
 %% Downsample EEG to fs of stim feature
 % first downsample the EEG to the sampling rate of the stimulus
-%%% BK: We would generally downsample to the lower sampling rate. We can also
-% resample to the higher one but there will be no added information
-sampleEEGdown=resample(sampleEEG,fsStim,fsEEG); 
+%%% BK: We would generally downsample to the lower sampling rate. We can 
+% also resample to the higher one but there will be no added information.
+%%% Note: EEG input to the resample function should have every channel in a
+% column. Be sure to tranpose [space x time x trial] matrices. 
+
+% ~~~START HERE!!~~~
+
 
 %% DC Correct the EEG
 
 % Transpose the input so it's space by time (then transpose output)
-sampleEEGDCCorr = dcCorrect(sampleEEGdown')'; 
+sampleEEGDCCorr = dcCorrect(eegDown')'; 
 
 %% z-score the stim feature
 % normalize the feature because correlation doesn't care about scale
