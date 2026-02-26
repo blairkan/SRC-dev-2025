@@ -239,7 +239,7 @@ eegConcat = eegDC(:, :); % Reshape to [space x concat time]
 eegConcat = eegConcat'; % Transpose to [concat time x space]
 
 %%% Specify which feature to input and repeat it nTrials times
-% Can specify zStimRMSMatrix, zStimFluxMatrix, or zStimPC1Matrix
+% Options: zStimRMSMatrix, zStimFluxMatrix, or zStimPC1Matrix
 featureUse = zStimFluxMatrix;
 fStr = 'Flux'; % String version for figure title
 
@@ -256,12 +256,12 @@ featureUseConcat = repmat(featureUse, nTrial, 1); % [concat time x lag]
 % - "X" refers to stimulus things, and "Y" refers to response things
 
 %%% Outputs of this function
-% - H: Temporal filters
-% - W: Spatial filters
-% - U: Temporally filtered stim feature
-% - V: Spatially filtered EEG
-% - A: Forward model of spatial filters (for topoplots)
-% - dC: Eigenvalues
+% - H: Temporal filters [lag+intercept x component]
+% - W: Spatial filters  [channel x component]
+% - U: Temporally filtered stim feature [concat time x component]
+% - V: Spatially filtered EEG   [concat time x component]
+% - A: Forward model of spatial filters for topoplots [channel x component]
+% - dC: Eigenvalues [lag+intercept x 1] (?)
 % - R: Struct containing all the covariance matrices
 
 [H, W, U, V, A, dC, R] = computeCCA(featureUseConcat, eegConcat, Kx, Ky); 
@@ -293,9 +293,23 @@ nComp = min(size(U, 2), size(V, 2)); % Number of components to work with
 U3d = reshape(U', [nComp, nTime, nTrial]); % [space x time x trial]
 U3d = permute(U3d, [2 1 3]); % [time x space x trial] for correlations
 
+% DEV ONLY - confirm that U is reshaped correctly into U3d
+for i = 1:nTrial
+    tempU = U((i-1)*nTime + 1 : i*nTime, :); % Manually get curr trial
+    assert(isequal(tempU, U3d(:, :, i)), 'U reshape error!')
+end
+disp([newline 'U-to-U3d reshape confirmed.'])
+
 %%% Reshape filtered EEG matrix
 V3d = reshape(V', [nComp, nTime, nTrial]); % [space x time x trial]
 V3d = permute(V3d, [2 1 3]); % [time x space x trial] for correlations
+
+% DEV ONLY - confirm that V is reshaped correctly into V3d
+for i = 1:nTrial
+    tempV = V((i-1)*nTime + 1 : i*nTime, :); % Manually get curr trial
+    assert(isequal(tempV, V3d(:, :, i)), 'V reshape error!')
+end
+disp([newline 'V-to-V3d reshape confirmed.'])
 
 %%% Now iterate through the trials AND the components
 % - Looping for clarity; can probably vectorize for speed later
@@ -348,8 +362,6 @@ rhos
 % since the topoplot_new() function is having issues with EGI .sfp
 % locations files at the moment. This block should work with EGI montages
 % containing 124, 125, 128, and 129 channels with no problem. 
-% - Later: Add a row to the figure to show the temporal filter in the
-%   frequency domain
 % - Later: Standardize the clim (top row) and ylim (bottom row). For now,
 %   each plot gets its own colorbar or ylabel for reference.
 
@@ -358,18 +370,38 @@ nPlot = 3;
 
 figure(1)
 for c=1:nPlot
-    subplot(2,nPlot,c);
     
     %%% BK: Topomap of current CC (spatial filter of EEG)
+    subplot(3,nPlot,c);
     plotOnEgi_multi(A(:,c), 4);
-    title(['Spatial response: comp ' num2str(c)]);
+    title(['Spatial response: C' num2str(c)]);
     colormap(jmaColors('coolhotcortex'))
     colorbar
     
     %%% BK: Temporal filter of current CC (of stim feature)
-    subplot(2,nPlot,c+nPlot);
-    plot(H(1:end-1,c),'k');
-    title(['Temporal response: comp. ' num2str(c)]);
+    subplot(3,nPlot,c+nPlot);
+    plot(H(1:end-1,c),'k', 'linewidth', 1.5);
+    box off; grid on
+    xlabel('Time (sample)')
+    if c == 1, ylabel('Weight (a.u.)'); end
+    title(['Temporal response: C' num2str(c)]);
+
+    %%% BK: FFT of temporal filter
+    subplot(3, nPlot, c+2*nPlot);
+    maxFreqPlot = 12;
+    zpadlen = 1000;
+    thisH = H(1:end-1,c); % Lag x 1
+    thisH = [thisH; zeros(zpadlen-length(thisH), 1)]; % Zero pad 
+    THISH = abs(fft(thisH));
+    thisFax = computeFFTFrequencyAxis(zpadlen,fsStim);
+    plot(thisFax(thisFax<=maxFreqPlot), THISH(thisFax<=maxFreqPlot), ...
+        'k', 'linewidth', 1.5);
+    box off; grid on
+    xlabel('Frequency (Hz)')
+    xlim([0 maxFreqPlot])
+    if c == 1, ylabel('Magnitude (a.u.)'); end
+    title(['FFT of temporal response: C' num2str(c)]);
+
 end
 sgtitle(fStr)
 
